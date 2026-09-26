@@ -3,7 +3,7 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
-import { createXRStore, XR, XROrigin, useXRInputSourceState } from '@react-three/xr'
+import { createXRStore, noEvents, PointerEvents, XR, XROrigin, useXRInputSourceState } from '@react-three/xr'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Vector3, type Group } from 'three'
 import { Floor } from './Floor'
@@ -124,9 +124,11 @@ export function App() {
         <Canvas
           shadows
           camera={{ position: [0, 1.55, 1.1], fov: 65 }}
+          events={noEvents}
           onCreated={() => setCanvasReady(true)}
         >
           <XR store={store}>
+            <PointerEvents />
             <Locomotion />
             <Scene />
           </XR>
