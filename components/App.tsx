@@ -1,7 +1,7 @@
 'use client'
 
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { OrbitControls } from '@react-three/drei'
+import { Environment, Lightformer, OrbitControls } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
 import { createXRStore, noEvents, PointerEvents, XR, XROrigin, useXRInputSourceState } from '@react-three/xr'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -64,8 +64,30 @@ function Scene() {
   return (
     <>
       <color attach="background" args={['#b9c6d1']} />
-      <ambientLight intensity={1.4} />
-      <directionalLight castShadow position={[3, 5, 2]} intensity={2.2} shadow-mapSize={[1024, 1024]} />
+      {/* Standard materials need something to reflect. drei renders these
+          lightformers into a cubemap once on mount (frames defaults to 1), so
+          this is a one-off cost rather than a per-frame one. */}
+      <Environment resolution={256}>
+        <Lightformer form="rect" intensity={2.5} position={[0, 5, -2]} scale={[8, 8, 1]} />
+        <Lightformer form="rect" intensity={1} color="#bcd6ff" position={[-4, 1.5, 0]} scale={[4, 4, 1]} />
+        <Lightformer form="rect" intensity={0.7} color="#ffd9b0" position={[4, 1.5, 0]} scale={[4, 4, 1]} />
+      </Environment>
+      {/* Ambient light has no direction, so a high value erases form. The
+          environment map now supplies the soft fill this used to fake. */}
+      <ambientLight intensity={0.2} />
+      <directionalLight
+        castShadow
+        position={[3, 5, 2]}
+        intensity={2.8}
+        shadow-mapSize={[2048, 2048]}
+        shadow-camera-left={-3}
+        shadow-camera-right={3}
+        shadow-camera-top={3}
+        shadow-camera-bottom={-3}
+        shadow-camera-near={0.5}
+        shadow-camera-far={20}
+        shadow-normalBias={0.03}
+      />
       <Physics gravity={[0, -9.81, 0]}>
         <Floor />
         <Table />
