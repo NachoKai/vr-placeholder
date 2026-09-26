@@ -30,7 +30,20 @@ function Scene() {
 export function App() {
   const store = useMemo(() => createXRStore(), [])
   const [canEnterVR, setCanEnterVR] = useState(false)
+  const [canvasReady, setCanvasReady] = useState(false)
   const [hasWebGL, setHasWebGL] = useState<boolean | null>(null)
+  const [vrError, setVrError] = useState<string | null>(null)
+
+  const enterVR = async () => {
+    if (!canvasReady || !canEnterVR) return
+
+    try {
+      setVrError(null)
+      await store.enterVR()
+    } catch {
+      setVrError('VR could not start. Use a WebXR-compatible browser and try again.')
+    }
+  }
 
   useEffect(() => {
     setCanEnterVR(typeof navigator !== 'undefined' && 'xr' in navigator)
@@ -57,7 +70,11 @@ export function App() {
           </div>
         </div>
       ) : hasWebGL === true ? (
-        <Canvas shadows camera={{ position: [0, 1.55, 1.1], fov: 65 }}>
+        <Canvas
+          shadows
+          camera={{ position: [0, 1.55, 1.1], fov: 65 }}
+          onCreated={() => setCanvasReady(true)}
+        >
           <XR store={store}>
             <Scene />
           </XR>
@@ -65,9 +82,12 @@ export function App() {
       ) : null}
       <div className="xr-controls">
         {canEnterVR ? (
-          <button type="button" onClick={() => store.enterVR()}>
-            Enter VR
-          </button>
+          <>
+            <button type="button" onClick={enterVR} disabled={!canvasReady}>
+              {canvasReady ? 'Enter VR' : 'Loading 3D scene…'}
+            </button>
+            {vrError ? <p role="alert">{vrError}</p> : null}
+          </>
         ) : (
           <p>WebXR is unavailable in this browser. Open this page in Meta Quest Browser to enter VR.</p>
         )}
