@@ -14,8 +14,10 @@ type Props = {
   position: [number, number, number]
 }
 
-// Objects collide with the table and floor, but not with other objects.
-const COLLISION_GROUPS = 0x0001 | (0x0006 << 16)
+// Objects are in group 1 and collide with everything they can see: group 1
+// (other objects), 2 (table) and 3 (floor). Leaving group 1 out of the filter
+// is what makes objects pass through each other.
+const COLLISION_GROUPS = 0x0001 | (0x0007 << 16)
 
 // The handle target carries the drag and the rigid body chases it, so a release
 // inherits the motion of the last grabbed frames. Cap it so a single bad frame
