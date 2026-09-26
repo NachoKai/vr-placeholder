@@ -21,6 +21,9 @@ export function GrabbableObject({ shape, color, position }: Props) {
   const lastPosition = useRef({ x: 0, y: 0, z: 0 })
   const targetPosition = useRef({ x: 0, y: 0, z: 0 })
 
+  // Objects collide with the table and floor, but not with other objects.
+  const collisionGroups = 0x0001 | (0x0006 << 16)
+
   useFrame((_, delta) => {
     const body = bodyRef.current
     const target = targetRef.current
@@ -33,13 +36,13 @@ export function GrabbableObject({ shape, color, position }: Props) {
 
     if (grabbed) {
       if (!wasGrabbed.current) {
-        body.setBodyType('kinematicPositionBased', true)
+        body.setBodyType('kinematicPositionBased' as any, true)
         body.wakeUp()
       }
       body.setNextKinematicTranslation(position)
       lastPosition.current = { x: position.x, y: position.y, z: position.z }
     } else if (wasGrabbed.current) {
-      body.setBodyType('dynamic', true)
+      body.setBodyType('dynamic' as any, true)
       body.setLinvel({
         x: (position.x - lastPosition.current.x) / delta,
         y: (position.y - lastPosition.current.y) / delta,

@@ -12,14 +12,14 @@ export function Table() {
 
   return (
     <group position={[0, 0, -2]}>
-      <RigidBody type="fixed" colliders="cuboid" position={[0, 0.75, 0]}>
+      <RigidBody type="fixed" colliders="cuboid" collisionGroups={0x0002 | (0x0005 << 16)} position={[0, 0.75, 0]}>
         <mesh castShadow receiveShadow>
           <boxGeometry args={[1.2, 0.03, 0.6]} />
           <meshStandardMaterial color="#8b5a3c" roughness={0.75} />
         </mesh>
       </RigidBody>
       {legPositions.map((position) => (
-        <RigidBody key={position.join(',')} type="fixed" colliders="cuboid" position={position}>
+        <RigidBody key={position.join(',')} type="fixed" colliders="cuboid" collisionGroups={0x0002 | (0x0005 << 16)} position={position}>
           <mesh castShadow>
             <boxGeometry args={[0.07, 0.75, 0.07]} />
             <meshStandardMaterial color="#5b3928" roughness={0.8} />
