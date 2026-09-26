@@ -165,6 +165,35 @@
   display: block;
 }
 
+.xr-fallback {
+  display: grid;
+  min-height: 100%;
+  place-items: center;
+  padding: 2rem;
+  color: #142c3d;
+  text-align: center;
+  font: 500 1rem/1.6 system-ui, sans-serif;
+}
+
+.xr-fallback > div {
+  max-width: 32rem;
+  padding: 2rem;
+  border: 1px solid rgb(20 44 61 / 0.16);
+  border-radius: 1.25rem;
+  background: rgb(255 255 255 / 0.58);
+  box-shadow: 0 1rem 3rem rgb(20 44 61 / 0.12);
+}
+
+.xr-fallback strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 1.15rem;
+}
+
+.xr-fallback p {
+  margin: 0;
+}
+
 .xr-controls {
   position: absolute;
   inset: 0;

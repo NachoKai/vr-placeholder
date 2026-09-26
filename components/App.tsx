@@ -30,18 +30,39 @@ function Scene() {
 export function App() {
   const store = useMemo(() => createXRStore(), [])
   const [canEnterVR, setCanEnterVR] = useState(false)
+  const [hasWebGL, setHasWebGL] = useState<boolean | null>(null)
 
   useEffect(() => {
     setCanEnterVR(typeof navigator !== 'undefined' && 'xr' in navigator)
+
+    const canvas = document.createElement('canvas')
+    let context: WebGLRenderingContext | WebGL2RenderingContext | null = null
+
+    try {
+      context = canvas.getContext('webgl2') ?? canvas.getContext('webgl')
+    } catch {
+      context = null
+    }
+
+    setHasWebGL(Boolean(context))
   }, [])
 
   return (
     <main className="xr-app">
-      <Canvas shadows camera={{ position: [0, 1.55, 1.1], fov: 65 }}>
-        <XR store={store}>
-          <Scene />
-        </XR>
-      </Canvas>
+      {hasWebGL === false ? (
+        <div className="xr-fallback" role="alert">
+          <div>
+            <strong>3D preview unavailable</strong>
+            <p>WebGL is disabled in this browser preview. Open the page in a hardware-accelerated browser or Meta Quest Browser to view the XR scene.</p>
+          </div>
+        </div>
+      ) : hasWebGL === true ? (
+        <Canvas shadows camera={{ position: [0, 1.55, 1.1], fov: 65 }}>
+          <XR store={store}>
+            <Scene />
+          </XR>
+        </Canvas>
+      ) : null}
       <div className="xr-controls">
         {canEnterVR ? (
           <button type="button" onClick={() => store.enterVR()}>
