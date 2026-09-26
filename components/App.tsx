@@ -23,9 +23,11 @@ function Locomotion() {
     if (!origin) return
 
     const leftThumbstick = leftController?.gamepad?.['xr-standard-thumbstick']
+    const rightThumbstick = rightController?.gamepad?.['xr-standard-thumbstick']
     const rightGamepad = rightController?.gamepad
     const xAxis = leftThumbstick?.xAxis ?? 0
     const yAxis = leftThumbstick?.yAxis ?? 0
+    const turnAxis = rightThumbstick?.xAxis ?? 0
     const jumpPressed = rightGamepad?.['a-button']?.state === 'pressed' || rightGamepad?.['b-button']?.state === 'pressed'
     const grounded = origin.position.y <= 0.001
 
@@ -38,6 +40,12 @@ function Locomotion() {
     if (origin.position.y === 0) verticalVelocity.current = 0
 
     const magnitude = Math.min(1, Math.hypot(xAxis, yAxis))
+    const turnMagnitude = Math.abs(turnAxis)
+
+    if (turnMagnitude >= 0.08) {
+      origin.rotation.y -= turnAxis * 1.6 * delta
+    }
+
     if (magnitude < 0.08) return
 
     const forward = camera.getWorldDirection(new Vector3())
