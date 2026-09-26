@@ -1,13 +1,61 @@
 'use client'
 
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
-import { createXRStore, XR } from '@react-three/xr'
-import { useEffect, useMemo, useState } from 'react'
+import { createXRStore, XR, XROrigin, useXRInputSourceState } from '@react-three/xr'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Vector3, type Group } from 'three'
 import { Floor } from './Floor'
 import { Table } from './Table'
 import { GrabbableObject } from './GrabbableObject'
+
+function Locomotion() {
+  const originRef = useRef<Group>(null)
+  const controller = useXRInputSourceState('controller', 'left')
+  const jumpController = useXRInputSourceState('controller', 'right')
+  const { camera } = useThree()
+  const verticalVelocity = useRef(0)
+  const wasJumpPressed = useRef(false)
+
+  useFrame((_, delta) => {
+    const origin = originRef.current
+    if (!origin) return
+
+    const jumpButton = jumpController?.gamepad?.['a-button'] ?? jumpController?.gamepad?.['b-button']
+    const jumpPressed = Boolean((jumpButton as { pressed?: boolean } | undefined)?.pressed)
+    const grounded = origin.position.y <= 0.001
+    if (jumpPressed && !wasJumpPressed.current && grounded) {
+      verticalVelocity.current = 3.2
+    }
+    wasJumpPressed.current = jumpPressed
+
+    verticalVelocity.current -= 9.81 * delta
+    origin.position.y = Math.max(0, origin.position.y + verticalVelocity.current * delta)
+    if (origin.position.y === 0) verticalVelocity.current = 0
+
+    const thumbstick = controller?.gamepad?.['xr-standard-thumbstick']
+    if (!thumbstick) return
+
+    const xAxis = thumbstick.xAxis ?? 0
+    const yAxis = thumbstick.yAxis ?? 0
+    const magnitude = Math.min(1, Math.hypot(xAxis, yAxis))
+    if (magnitude < 0.08) return
+
+    const forward = camera.getWorldDirection(new Vector3())
+    forward.y = 0
+    const length = Math.hypot(forward.x, forward.z) || 1
+    forward.x /= length
+    forward.z /= length
+
+    const right = { x: -forward.z, z: forward.x }
+    const speed = 1.4 * delta * magnitude
+    origin.position.x += (right.x * xAxis - forward.x * yAxis) * speed
+    origin.position.z += (right.z * xAxis - forward.z * yAxis) * speed
+  })
+
+  return <XROrigin ref={originRef}><Scene /></XROrigin>
+}
 
 function Scene() {
   return (
@@ -76,7 +124,7 @@ export function App() {
           onCreated={() => setCanvasReady(true)}
         >
           <XR store={store}>
-            <Scene />
+            <Locomotion />
           </XR>
         </Canvas>
       ) : null}
