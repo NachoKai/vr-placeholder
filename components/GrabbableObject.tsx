@@ -19,6 +19,7 @@ export function GrabbableObject({ shape, color, position }: Props) {
   const handleRef = useRef<any>(null)
   const wasGrabbed = useRef(false)
   const lastPosition = useRef({ x: 0, y: 0, z: 0 })
+  const targetPosition = useRef({ x: 0, y: 0, z: 0 })
 
   useFrame((_, delta) => {
     const body = bodyRef.current
@@ -26,21 +27,25 @@ export function GrabbableObject({ shape, color, position }: Props) {
     const handle = handleRef.current
     if (!body || !target || !handle || !delta) return
 
-    const grabbed = handle.capturedObjects?.size > 0
-    const elements = target.matrixWorld.elements
-    const position = { x: elements[12], y: elements[13], z: elements[14] }
+    const grabbed = (handle.capturedObjects?.size ?? 0) > 0
+    target.getWorldPosition(targetPosition.current)
+    const position = targetPosition.current
 
     if (grabbed) {
-      body.setBodyType('kinematicPositionBased' as any, true)
+      if (!wasGrabbed.current) {
+        body.setBodyType('kinematicPositionBased', true)
+        body.wakeUp()
+      }
       body.setNextKinematicTranslation(position)
-      lastPosition.current = position
+      lastPosition.current = { x: position.x, y: position.y, z: position.z }
     } else if (wasGrabbed.current) {
-      body.setBodyType('dynamic' as any, true)
+      body.setBodyType('dynamic', true)
       body.setLinvel({
         x: (position.x - lastPosition.current.x) / delta,
         y: (position.y - lastPosition.current.y) / delta,
         z: (position.z - lastPosition.current.z) / delta,
       }, true)
+      body.wakeUp()
     }
 
     wasGrabbed.current = grabbed
